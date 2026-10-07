@@ -1,69 +1,38 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#f8dce6">
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>赤塚学園 ヘアカラーチェック</title>
 <style>
-:root{--pink:#f8dce6;--green:#65b978;--yellow:#e8b83f;--red:#df5362;--ink:#3d3035}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:var(--pink);color:var(--ink)}
-button{font:inherit;-webkit-tap-highlight-color:transparent}.app{min-height:100vh;max-width:620px;margin:auto;background:var(--pink);padding:env(safe-area-inset-top) 18px env(safe-area-inset-bottom)}
-header{text-align:center;padding:38px 10px 20px}h1{font-size:29px;margin:0;font-weight:800}.sub{text-align:center;color:#735e66;font-size:13px}
-.home-buttons{display:grid;gap:16px;margin:28px 0}.main-btn{border:0;border-radius:18px;padding:20px 16px;font-size:19px;font-weight:800;background:white;box-shadow:0 5px 18px #7a44521a;color:#513840}.primary{background:#b65a7c;color:white}
-.panel{background:#fff9fb;border-radius:20px;padding:18px;margin-top:18px;box-shadow:0 5px 18px #7a44521a}.hidden{display:none!important}.back{border:0;background:transparent;font-weight:700;padding:8px 0;color:#67434f}.help{font-size:13px;line-height:1.7;color:#715f66}
-.camera{position:fixed;inset:0;background:#000;z-index:10;display:flex;flex-direction:column}.camera video{width:100%;height:calc(100% - 245px);object-fit:cover;background:#111}
-.frame{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:62vw;max-width:330px;height:180px;border:3px solid white;border-radius:18px;box-shadow:0 0 0 9999px #0002;pointer-events:none}
-.instruction{position:absolute;top:22px;left:20px;right:20px;text-align:center;color:white;background:#0008;border-radius:18px;padding:10px;font-size:14px}
-.camera-bottom{background:#fff3f6;flex:1;padding:10px 14px 18px;overflow:auto}.scale-title{text-align:center;font-size:12px;font-weight:700;margin:0 0 5px}
-.scale,.swatches{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}.tick{text-align:center;font-size:10px;font-weight:800;padding:4px 0;border-radius:5px;color:white}.g{background:var(--green)}.y{background:var(--yellow)}.r{background:var(--red)}.swatch{height:25px;border-radius:4px;border:1px solid #ffffff88;margin-top:4px}
-.confirm,.cancel{width:100%;border:0;border-radius:16px;padding:15px;margin-top:10px;font-weight:800;font-size:18px}.confirm{background:#b65a7c;color:white}.cancel{background:#ddd0d5;color:#47373d;font-size:14px}
-.result-screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:25px}.result-box{width:100%;max-width:520px;border-radius:30px;padding:55px 20px;text-align:center;color:white;box-shadow:0 10px 40px #0002}.result-level{font-size:24px;font-weight:700;margin-bottom:12px}.result-message{font-size:35px;font-weight:900;line-height:1.3}.result-again{border:0;border-radius:17px;background:white;color:#49363e;padding:16px 35px;margin-top:35px;font-size:18px;font-weight:800}
-.note{font-size:12px;line-height:1.6;color:#725f66}
-</style>
-</head>
-<body>
-<div class="app">
-<header><h1>赤塚学園　ヘアカラーチェック</h1><p class="sub">Hair Color Check</p></header>
-<main id="home">
-<div class="home-buttons">
-<button class="main-btn primary" onclick="openCamera()">📷 カメラを起動する</button>
-<button class="main-btn" onclick="openSettings()">🎨 基準色の設定</button>
-</div>
-<section class="panel help"><b>判定基準</b><br>レベル1～7：グリーン「問題ありません」<br>レベル8～9：イエロー「やや明るめです」<br>レベル10以上：レッド「今すぐ対処してください」</section>
-</main>
-<section id="settings" class="panel hidden">
-<button class="back" onclick="goHome()">← トップへ戻る</button><h2>基準色の設定</h2>
-<p>判定に使う基準を設定します。初期値は試作値です。</p>
-<p><label>基準となるレベル：
-<select id="baseLevel" onchange="saveSettings()"><option>7</option><option>8</option><option>9</option></select></label></p>
-<div id="levelPreview" class="swatches"></div>
-<p class="note">正式運用では、赤塚学園で使用する実物のヘアカラーチャートを基準に校正することを推奨します。</p>
-</section>
-<section id="camera" class="camera hidden">
-<div class="instruction">髪の一部分を枠いっぱいに近づけてください<br>距離を一定にして撮影します</div>
-<video id="video" autoplay playsinline muted></video><div class="frame"></div>
-<div class="camera-bottom"><p class="scale-title">ヘアカラーレベル</p><div id="scale" class="scale"></div><div id="swatches" class="swatches"></div>
-<button class="confirm" onclick="judge()">確認</button><button class="cancel" onclick="closeCamera()">カメラを終了</button></div>
-<canvas id="canvas" class="hidden"></canvas>
-</section>
-<section id="result" class="result-screen hidden"><div id="resultBox" class="result-box">
-<div id="resultLevel" class="result-level"></div><div id="resultMessage" class="result-message"></div>
-<button class="result-again" onclick="backToCamera()">確認</button></div></section>
+:root{--pink:#f8dce6;--g:#65b978;--y:#e8b83f;--r:#df5362}*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Yu Gothic",sans-serif;background:var(--pink);color:#3d3035}.app{max-width:640px;margin:auto;min-height:100vh;padding:30px 18px}h1{text-align:center;font-size:28px}.btn{width:100%;padding:17px;margin:9px 0;border:0;border-radius:17px;font-size:18px;font-weight:bold;background:white}.primary{background:#b65a7c;color:white}.panel{background:#fff9fb;border-radius:20px;padding:18px;margin-top:16px}.hidden{display:none!important}
+.camera,.review,.result{position:fixed;inset:0;z-index:10;background:#111;display:flex;flex-direction:column}.camera video{width:100%;height:calc(100% - 245px);object-fit:cover}.guide{position:absolute;top:18px;left:15px;right:15px;background:#0009;color:white;padding:9px;border-radius:15px;text-align:center;font-size:13px}.tools{position:absolute;top:72px;left:10px;right:10px;text-align:center}.tool{background:#0009;color:#fff;border:0;border-radius:10px;padding:8px;margin:3px}.frame{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);width:70%;height:190px;border:3px solid white;border-radius:18px;pointer-events:none}.bottom{background:#fff3f6;flex:1;padding:8px 12px}.scale,.swatches{display:grid;grid-template-columns:repeat(11,1fr);gap:3px}.tick{color:#fff;text-align:center;font-size:10px;padding:4px;border-radius:4px}.sw{height:22px;border-radius:4px}.g{background:var(--g)}.y{background:var(--y)}.r{background:var(--r)}input[type=range]{width:100%}.review canvas{width:100%;height:calc(100% - 220px);object-fit:contain}.review .bottom{text-align:center}.point{position:absolute;width:34px;height:34px;border:3px solid white;border-radius:50%;background:#b65a7c;color:white;text-align:center;line-height:28px;font-weight:bold}.result{align-items:center;justify-content:center;padding:20px}.resultbox{width:100%;max-width:540px;padding:50px 18px;border-radius:30px;text-align:center;color:white}.msg{font-size:34px;font-weight:900}.again{background:white;color:#44343a;border:0;border-radius:16px;padding:15px 35px;margin-top:25px;font-weight:bold}.small{font-size:12px;line-height:1.6}
+</style></head><body><div class="app">
+<h1>赤塚学園　ヘアカラーチェック</h1>
+<div id="home"><button class="btn primary" onclick="openCam()">📷 カメラを起動する</button><button class="btn" onclick="settings()">🎨 基準色の設定</button><div class="panel small">レベル5～7：グリーン「問題ありません」<br>レベル8～9：イエロー「やや明るいです」<br>レベル10～15：レッド「今すぐ対処してください」<br>※レベル4以下は黒として扱います。</div></div>
+<div id="set" class="panel hidden"><button class="btn" onclick="home()">← 戻る</button><h2>基準色の設定</h2><p>「問題ありません」の上限</p><select id="ok" onchange="save()"><option>7</option><option>8</option><option>9</option><option>10</option></select><p>「やや明るいです」の上限</p><select id="warn" onchange="save()"><option>8</option><option>9</option><option>10</option><option>11</option></select><p class="small">レベル5～15の基準色は、次の改良版で各レベルを撮影して登録できるようにします。</p></div>
+
+<div id="cam" class="camera hidden"><div class="guide">髪の一部分を枠に入れてください。ズーム・ライトを使用できます。</div><div class="tools"><button class="tool" onclick="torch()">🔦 ライト</button><button class="tool" onclick="zoom(1)">1×</button><button class="tool" onclick="zoom(2)">2×</button><button class="tool" onclick="zoom(3)">3×</button></div><video id="v" autoplay playsinline muted></video><div class="frame"></div><div class="bottom"><div>ズーム <span id="zl">1.0</span>×</div><input id="zr" type="range" min="1" max="3" step=".1" value="1" oninput="zoom(this.value)"><div id="scale" class="scale"></div><div id="sw" class="swatches"></div><button class="btn primary" onclick="capture()">撮影する</button><button class="btn" onclick="closeCam()">カメラを終了</button></div></div>
+
+<div id="review" class="review hidden"><canvas id="c"></canvas><div id="pts"></div><div class="bottom"><b>判定する髪の場所を3か所タップしてください</b><div id="pc">0 / 3</div><button class="btn primary" onclick="judge()">3か所を判定する</button><button class="btn" onclick="retake()">撮り直す</button></div></div>
+
+<div id="result" class="result hidden"><div id="rb" class="resultbox"><div id="rl"></div><div id="rm" class="msg"></div><div id="rd" class="small"></div><button class="again" onclick="back()">確認</button></div></div>
 </div>
 <script>
-let stream=null;
+let stream,track,pts=[],torchOn=false;
 const colors=['#17120f','#1b1512','#211915','#281d18','#30231c','#3a291f','#453126','#66483a','#87604a','#a97858','#c69570','#dfb08e'];
-const $=id=>document.getElementById(id);
-function renderScale(){for(let i=1;i<=12;i++){let t=document.createElement('div');t.className='tick '+(i<=7?'g':i<=9?'y':'r');t.textContent=i;$('scale').appendChild(t);let s=document.createElement('div');s.className='swatch';s.style.background=colors[i-1];$('swatches').appendChild(s)}}
-renderScale();
-function openSettings(){$('home').classList.add('hidden');$('settings').classList.remove('hidden');$('baseLevel').value=localStorage.getItem('baseLevel')||'7';$('levelPreview').innerHTML=colors.map((c,i)=>`<div class="swatch" style="background:${c}"></div>`).join('')}
-function saveSettings(){localStorage.setItem('baseLevel',$('baseLevel').value)}
-function goHome(){$('settings').classList.add('hidden');$('home').classList.remove('hidden')}
-async function openCamera(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});$('video').srcObject=stream;$('camera').classList.remove('hidden')}catch(e){alert('カメラを起動できません。Safariのカメラ許可とHTTPS接続を確認してください。')}}
-function closeCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('video').srcObject=null;$('camera').classList.add('hidden')}
-function judge(){const v=$('video'),c=$('canvas'),x=c.getContext('2d',{willReadFrequently:true});if(!v.videoWidth){alert('カメラ映像を確認できません。');return}c.width=240;c.height=180;const sw=v.videoWidth*.46,sh=v.videoHeight*.32;x.drawImage(v,(v.videoWidth-sw)/2,(v.videoHeight-sh)/2,sw,sh,0,0,240,180);const d=x.getImageData(0,0,240,180).data;let sum=0,n=0;for(let i=0;i<d.length;i+=4){let r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255,l=.2126*r+.7152*g+.0722*b;if(l<.94){sum+=l;n++}}let l=n?sum/n:.3;let level=Math.max(1,Math.min(12,Math.round(3+l*10)));showResult(level)}
-function showResult(level){let box=$('resultBox'),msg;if(level<=7){box.style.background='#65b978';msg='問題ありません'}else if(level<=9){box.style.background='#e8b83f';msg='やや明るめです'}else{box.style.background='#df5362';msg='今すぐ対処してください'}$('resultLevel').textContent='判定レベル '+level;$('resultMessage').textContent=msg;$('result').classList.remove('hidden')}
-function backToCamera(){$('result').classList.add('hidden')}
-</script>
-</body></html>
+const $=x=>document.getElementById(x), okMax=()=>+(localStorage.ok||7), warnMax=()=>+(localStorage.warn||9);
+function drawScale(){for(let i=5;i<=15;i++){let a=document.createElement('div');a.className='tick '+(i<=okMax()?'g':i<=warnMax()?'y':'r');a.textContent=i;$('scale').append(a);let b=document.createElement('div');b.className='sw';b.style.background=colors[i-1];$('sw').append(b)}}
+drawScale();
+function settings(){$('home').classList.add('hidden');$('set').classList.remove('hidden');$('ok').value=okMax();$('warn').value=warnMax()}
+function save(){let o=+$('ok').value,w=+$('warn').value;if(w<=o)w=o+1;localStorage.ok=o;localStorage.warn=w;location.reload()}
+function home(){$('set').classList.add('hidden');$('home').classList.remove('hidden')}
+async function openCam(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});track=stream.getVideoTracks()[0];$('v').srcObject=stream;$('cam').classList.remove('hidden')}catch(e){alert('カメラを起動できません。Safariのカメラ許可とHTTPSを確認してください。')}}
+function closeCam(){if(stream)stream.getTracks().forEach(t=>t.stop());$('v').srcObject=null;$('cam').classList.add('hidden')}
+function zoom(x){$('zr').value=x;$('zl').textContent=(+x).toFixed(1);if(track){let c=track.getCapabilities?.();if(c?.zoom)track.applyConstraints({advanced:[{zoom:Math.min(+x,c.zoom.max)}]}).catch(()=>{})}}
+async function torch(){if(!track)return;let c=track.getCapabilities?.();if(!c?.torch){alert('このiPhone/ブラウザではライト操作に対応していません。');return}torchOn=!torchOn;try{await track.applyConstraints({advanced:[{torch:torchOn}]})}catch(e){alert('ライトを操作できません。')}}
+function capture(){let v=$('v'),c=$('c');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);$('cam').classList.add('hidden');$('review').classList.remove('hidden');pts=[];$('pts').innerHTML='';$('pc').textContent='0 / 3'}
+$('review').addEventListener('click',e=>{if(e.target.tagName==='BUTTON')return;if(pts.length>=3)return;let r=$('c').getBoundingClientRect();let x=e.clientX-r.left,y=e.clientY-r.top;if(x<0||y<0||x>r.width||y>r.height)return;pts.push({x:x/r.width,y:y/r.height});let p=document.createElement('div');p.className='point';p.textContent=pts.length;p.style.left=(e.clientX-17)+'px';p.style.top=(e.clientY-17)+'px';$('pts').append(p);$('pc').textContent=pts.length+' / 3'})
+function retake(){$('review').classList.add('hidden');$('cam').classList.remove('hidden');pts=[];$('pts').innerHTML=''}
+function sample(ctx,x,y){let r=15,d=ctx.getImageData(Math.max(0,x-r),Math.max(0,y-r),31,31).data,s=0,n=0;for(let i=0;i<d.length;i+=4){let R=d[i]/255,G=d[i+1]/255,B=d[i+2]/255,l=.2126*R+.7152*G+.0722*B;if(l<.94){s+=l;n++}}return n?s/n:.03}
+function rawLevel(l){return Math.max(4,Math.min(15,Math.round(3+l*10)))}
+function judge(){if(pts.length!==3){alert('3か所をタップしてください。');return}let c=$('c'),x=c.getContext('2d',{willReadFrequently:true}),raw=pts.map(p=>rawLevel(sample(x,p.x*c.width,p.y*c.height))),avg=raw.reduce((a,b)=>a+b,0)/3,level=Math.min(15,Math.round((avg+1.5)*10)/10),msg,bg;if(level<=okMax()){msg='問題ありません';bg='#65b978'}else if(level<=warnMax()){msg='やや明るいです';bg='#e8b83f'}else{msg='今すぐ対処してください';bg='#df5362'}$('rb').style.background=bg;$('rl').textContent='判定レベル '+level.toFixed(1);$('rm').textContent=msg;$('rd').textContent='3点：'+raw.join(' / ')+' → 平均 '+avg.toFixed(1)+' ＋ 1.5補正';$('review').classList.add('hidden');$('result').classList.remove('hidden')}
+function back(){$('result').classList.add('hidden');$('review').classList.remove('hidden')}
+</script></body></html>
